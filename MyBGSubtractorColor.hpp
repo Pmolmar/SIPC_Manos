@@ -13,22 +13,21 @@
 #define SAMPLE_SIZE 20
 #define DISTANCE_BETWEEN_SAMPLES 30
 
-class MyBGSubtractorColor {
+class MyBGSubtractorColor
+{
 
 public:
-
 	MyBGSubtractorColor(cv::VideoCapture vc);
 	void LearnModel();
 	void ObtainBGMask(cv::Mat frame, cv::Mat &bgmask);
-	
 
 private:
-	int h_low,h_up,l_low,l_up,s_low,s_up;
+	int h_low, h_up, l_low, l_up, s_low, s_up;
 	cv::VideoCapture cap;
-	
+
 	std::vector<cv::Scalar> means;
 	std::vector<cv::Scalar> lower_bounds;
 	std::vector<cv::Scalar> upper_bounds;
 	int max_samples;
-        static void Trackbar_func(int, void*);
+	static void Trackbar_func(int, void *);
 };
