@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 		// mostramos el resultado del reconocimento de gestos
 
 		imshow("Reconocimiento", frame);
-		imshow("HOla", bgmask);
+		imshow("Fondo", bgmask);
 	}
 
 	destroyWindow("Reconocimiento");
