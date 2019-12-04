@@ -104,6 +104,14 @@ void MyBGSubtractorColor::LearnModel()
 }
 void MyBGSubtractorColor::ObtainBGMask(cv::Mat frame, cv::Mat &bgmask)
 {
+	//mat acc(frame.rows,frame.cols,CV_8u)
+	//acc.setTo(Scalar(0));
+	//acc += dst;
+	// CODIGO 1.2
+	// Definir los rangos máximos y mínimos para cada canal (HLS)
+	// umbralizar las imágenes para cada rango y sumarlas para
+	// obtener la máscara final con el fondo eliminado
+	//...
 
 	Mat acc(frame.rows, frame.cols, CV_8U), hls_frame;
 	cvtColor(frame, hls_frame, CV_BGR2HLS);
@@ -149,13 +157,4 @@ void MyBGSubtractorColor::ObtainBGMask(cv::Mat frame, cv::Mat &bgmask)
 		acc += X;
 	}
 	bgmask = acc;
-
-	//mat acc(frame.rows,frame.cols,CV_8u)
-	//acc.setTo(Scalar(0));
-	//acc += dst;
-	// CODIGO 1.2
-	// Definir los rangos máximos y mínimos para cada canal (HLS)
-	// umbralizar las imágenes para cada rango y sumarlas para
-	// obtener la máscara final con el fondo eliminado
-	//...
 }

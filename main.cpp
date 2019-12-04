@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 
 	VideoCapture cap;
 
-	cap.open(0);
+	cap.open("/dev/video3");
 	if (!cap.isOpened())
 	{
 		printf("\nNo se puede abrir la c�mara\n");
@@ -73,15 +73,18 @@ int main(int argc, char **argv)
 		// CODIGO 2.1
 		// limpiar la m�scara del fondo de ruido
 		medianBlur(bgmask, bgmask, 3);
-		int dilation_size = 2;
+
+		int dilation_size = 1;
 		Mat element = getStructuringElement(MORPH_RECT, Size(2 * dilation_size + 1, 2 * dilation_size + 1), Point(dilation_size, dilation_size));
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < 1; ++i)
 		{
 			dilate(bgmask, bgmask, element);
 			erode(bgmask, bgmask, element);
 		}
 
 		// deteccion de las caracter�sticas de la mano
+		HandGesture deteccion;
+		deteccion.FeaturesDetection(bgmask,frame);
 
 		// mostramos el resultado de la sobstracci�n de fondo
 

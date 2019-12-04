@@ -46,13 +46,25 @@ void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 
 	// CODIGO 3.1
 	// detección del contorno de la mano y selección del contorno más largo
-	//...
+	circle(temp_mask, Point(4, 5), 5, cv::Scalar(255));
+	findContours(temp_mask, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	unsigned int aux = 0;
 
+	for (unsigned int i = 0; i < contours.size(); i++)
+	{
+		if (aux < contours.at(i).size())
+		{
+			index = i;
+			aux = contours.at(i).size();
+		}
+	}
+	//std::cout<<index<<std::endl;
 	// pintar el contorno
-	//...
+	drawContours(output_img, contours, index, cv::Scalar(255, 0, 0), 2, 8, vector<Vec4i>(), 0, Point());
 
 	//obtener el convex hull
-	vector<int> hull;
+	vector<int>
+		hull;
 	convexHull(contours[index], hull);
 
 	// pintar el convex hull
@@ -79,6 +91,35 @@ void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 
 		// CODIGO 3.2
 		// filtrar y mostrar los defectos de convexidad
-		//...
+		if (angle < 120 && depth > 100)
+		{
+			++cont;
+			circle(output_img, f, 5, Scalar(0, 255, 0), 3);
+			//cout << depth << endl;
+		}
+	}
+	// std::cout << cont << endl;
+	switch (cont)
+	{
+	case 0:
+		cout << "Puño o 1 deo" << endl;
+		//Diferenciar entre puño o 1 deo boundingrect
+		break;
+
+	case 1:
+		cout << "2 deos" << endl;
+		break;
+	case 2:
+		cout << "3 deos" << endl;
+		break;
+	case 3:
+		cout << "4 deos" << endl;
+		break;
+	case 4:
+		cout << "la mano" << endl;
+		break;
+	default:
+		cout << "Se te fue la camara crack." << endl;
+		break;
 	}
 }
