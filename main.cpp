@@ -22,7 +22,8 @@ int main(int argc, char **argv)
 
 	VideoCapture cap;
 
-	cap.open("/dev/video3");
+	cap.open("/dev/video2");
+	// cap.open(0);
 	if (!cap.isOpened())
 	{
 		printf("\nNo se puede abrir la c�mara\n");
@@ -72,11 +73,11 @@ int main(int argc, char **argv)
 
 		// CODIGO 2.1
 		// limpiar la m�scara del fondo de ruido
-		medianBlur(bgmask, bgmask, 3);
+		medianBlur(bgmask, bgmask, 5);
 
-		int dilation_size = 1;
+		int dilation_size = 2;
 		Mat element = getStructuringElement(MORPH_RECT, Size(2 * dilation_size + 1, 2 * dilation_size + 1), Point(dilation_size, dilation_size));
-		for (int i = 0; i < 1; ++i)
+		for (int i = 0; i < 5; ++i)
 		{
 			dilate(bgmask, bgmask, element);
 			erode(bgmask, bgmask, element);

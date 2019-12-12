@@ -80,7 +80,10 @@ void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 	vector<Vec4i> defects;
 	convexityDefects(contours[index], hull, defects);
 
+	Rect areaPunio = boundingRect(contours[index]);
+
 	int cont = 0;
+	vector<double> angles;
 	for (int i = 0; i < defects.size(); i++)
 	{
 		Point s = contours[index][defects[i][0]];
@@ -96,18 +99,35 @@ void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 			++cont;
 			circle(output_img, f, 5, Scalar(0, 255, 0), 3);
 			//cout << depth << endl;
+			angles.push_back(angle);
 		}
 	}
 	// std::cout << cont << endl;
+	string cadena;
 	switch (cont)
 	{
 	case 0:
-		cout << "Puño o 1 deo" << endl;
 		//Diferenciar entre puño o 1 deo boundingrect
+		float prop;
+		prop = ((float)areaPunio.height / (float)areaPunio.width);
+		// cout << areaPunio.height << "-----" << areaPunio.width;
+		// cout << "--------" << prop << endl;
+		if (prop < 1.5)
+			cout << "Puño" << endl;
+		else
+			cout << "Deo" << endl;
 		break;
 
 	case 1:
-		cout << "2 deos" << endl;
+
+		if (angles[0] < 55)
+			cadena = "Peace";
+		else if (angles[0] < 85)
+			cadena = "Rock";
+		else
+			cadena = "Ronaldinho";
+
+		putText(output_img, cadena,Point(0,50),1,FONT_HERSHEY_COMPLEX, Scalar(0,255,5));
 		break;
 	case 2:
 		cout << "3 deos" << endl;
