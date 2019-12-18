@@ -156,5 +156,5 @@ void MyBGSubtractorColor::ObtainBGMask(cv::Mat frame, cv::Mat &bgmask)
 		inRange(hls_frame, low, up, X);
 		acc += X;
 	}
-	bgmask = acc;
+	 acc.copyTo(bgmask);
 }

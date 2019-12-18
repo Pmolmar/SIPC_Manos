@@ -36,7 +36,7 @@ double HandGesture::getAngle(Point s, Point e, Point f)
 		angle += 2 * CV_PI;
 	return (angle * 180.0 / CV_PI);
 }
-void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
+cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 {
 
 	vector<vector<Point>> contours;
@@ -80,10 +80,34 @@ void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 	vector<Vec4i> defects;
 	convexityDefects(contours[index], hull, defects);
 
-	Rect areaPunio = boundingRect(contours[index]);
+	Rect rectangulo = boundingRect(contours[index]);
+
+	Point centro = Point(rectangulo.tl().x + (rectangulo.br().x - rectangulo.tl().x) / 2,
+						 rectangulo.br().y + (rectangulo.tl().y - rectangulo.br().y) / 2);
+
+	if ((centro.x - lastCenter.x) < -20)
+		putText(output_img, "derecha", Point(10, 420), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+
+	else if ((centro.x - lastCenter.x) < 20)
+		putText(output_img, "izquierda", Point(10, 420), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+	else
+		putText(output_img, "o", Point(10, 420), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+
+	if ((centro.y - lastCenter.y) < 20)
+		putText(output_img, "abajo", Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+
+	else if ((centro.y - lastCenter.y) < -20)
+		putText(output_img, "arriba", Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+	else
+		putText(output_img, "o", Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+
+	lastCenter = centro;
 
 	int cont = 0;
 	vector<double> angles;
+	//vector que almacena las puntas de los dedos
+	vector<Point> puntas;
+
 	for (int i = 0; i < defects.size(); i++)
 	{
 		Point s = contours[index][defects[i][0]];
@@ -91,6 +115,8 @@ void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 		Point f = contours[index][defects[i][2]];
 		float depth = (float)defects[i][3] / 256.0;
 		double angle = getAngle(s, e, f);
+
+		puntas.push_back(s);
 
 		// CODIGO 3.2
 		// filtrar y mostrar los defectos de convexidad
@@ -102,20 +128,35 @@ void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 			angles.push_back(angle);
 		}
 	}
+
 	// std::cout << cont << endl;
 	string cadena;
+	Point elPunto(0, 900);
+
 	switch (cont)
 	{
 	case 0:
 		//Diferenciar entre puño o 1 deo boundingrect
-		float prop;
-		prop = ((float)areaPunio.height / (float)areaPunio.width);
-		// cout << areaPunio.height << "-----" << areaPunio.width;
-		// cout << "--------" << prop << endl;
-		if (prop < 1.5)
-			cout << "Puño" << endl;
+		float prop1, prop2;
+		prop1 = ((float)rectangulo.height / (float)rectangulo.width);
+		prop2 = ((float)rectangulo.width / (float)rectangulo.height);
+
+		if ((prop1 < 1.3) && (prop2 < 1.3))
+			putText(output_img, "Puño", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 		else
-			cout << "Deo" << endl;
+		{
+			putText(output_img, "Dedo", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+
+			//punta del dedo mas "alto"
+			for (unsigned int i = 0; i < puntas.size(); ++i)
+			{
+				if (elPunto.y > puntas[i].y)
+				{
+					elPunto.x = puntas[i].x;
+					elPunto.y = puntas[i].y;
+				}
+			}
+		}
 		break;
 
 	case 1:
@@ -127,19 +168,22 @@ void HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 		else
 			cadena = "Ronaldinho";
 
-		putText(output_img, cadena,Point(0,50),1,FONT_HERSHEY_COMPLEX, Scalar(0,255,5));
+		putText(output_img, cadena, Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 		break;
+
 	case 2:
-		cout << "3 deos" << endl;
+		putText(output_img, "3 dedos", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 		break;
+
 	case 3:
-		cout << "4 deos" << endl;
+		putText(output_img, "4 dedos", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 		break;
 	case 4:
-		cout << "la mano" << endl;
+		putText(output_img, "Mano", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 		break;
 	default:
-		cout << "Se te fue la camara crack." << endl;
+		putText(output_img, "Franccesco", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 		break;
 	}
+	return elPunto;
 }

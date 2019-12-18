@@ -29,6 +29,7 @@ int main(int argc, char **argv)
 		printf("\nNo se puede abrir la c�mara\n");
 		return -1;
 	}
+
 	MyBGSubtractorColor prueba(cap);
 	int cont = 0;
 	while (frame.empty() && cont < 2000)
@@ -47,6 +48,7 @@ int main(int argc, char **argv)
 
 	namedWindow("Reconocimiento");
 	namedWindow("Fondo");
+	namedWindow("lienzo");
 
 	// creamos el objeto para la substracci�n de fondo
 
@@ -55,6 +57,12 @@ int main(int argc, char **argv)
 	// iniciamos el proceso de obtenci�n del modelo del fondo
 
 	prueba.LearnModel();
+	HandGesture deteccion;
+
+	vector<Point> Anterior(100);
+	int nPuntos = 0;
+
+	Mat lienzo(1280,720, CV_8UC3, Scalar(0, 0, 0));
 
 	for (;;)
 	{
@@ -75,28 +83,34 @@ int main(int argc, char **argv)
 		// limpiar la m�scara del fondo de ruido
 		medianBlur(bgmask, bgmask, 5);
 
-		int dilation_size = 2;
+		int dilation_size = 3;
+
 		Mat element = getStructuringElement(MORPH_RECT, Size(2 * dilation_size + 1, 2 * dilation_size + 1), Point(dilation_size, dilation_size));
-		for (int i = 0; i < 5; ++i)
+		for (int i = 0; i < 6; ++i)
 		{
 			dilate(bgmask, bgmask, element);
 			erode(bgmask, bgmask, element);
 		}
 
 		// deteccion de las caracter�sticas de la mano
-		HandGesture deteccion;
-		deteccion.FeaturesDetection(bgmask,frame);
-
+		Point lapiz;
+		lapiz = deteccion.FeaturesDetection(bgmask, frame);
+		if (lapiz != Point(0, 0))
+		{
+			circle(lienzo, lapiz, 2, Scalar(255, 255, 255), 2);
+		}
 		// mostramos el resultado de la sobstracci�n de fondo
 
 		// mostramos el resultado del reconocimento de gestos
 
+		imshow("lienzo", lienzo);
 		imshow("Reconocimiento", frame);
 		imshow("Fondo", bgmask);
 	}
 
 	destroyWindow("Reconocimiento");
 	destroyWindow("Fondo");
+	destroyWindow("lienzo");
 	cap.release();
 	return 0;
 }
