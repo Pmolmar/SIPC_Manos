@@ -36,9 +36,9 @@ double HandGesture::getAngle(Point s, Point e, Point f)
 		angle += 2 * CV_PI;
 	return (angle * 180.0 / CV_PI);
 }
+
 cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 {
-
 	vector<vector<Point>> contours;
 	Mat temp_mask;
 	mask.copyTo(temp_mask);
@@ -58,13 +58,12 @@ cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 			aux = contours.at(i).size();
 		}
 	}
-	//std::cout<<index<<std::endl;
+
 	// pintar el contorno
 	drawContours(output_img, contours, index, cv::Scalar(255, 0, 0), 2, 8, vector<Vec4i>(), 0, Point());
 
 	//obtener el convex hull
-	vector<int>
-		hull;
+	vector<int> hull;
 	convexHull(contours[index], hull);
 
 	// pintar el convex hull
@@ -80,30 +79,9 @@ cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 	vector<Vec4i> defects;
 	convexityDefects(contours[index], hull, defects);
 
-	Rect rectangulo = boundingRect(contours[index]);
-
-	Point centro = Point(rectangulo.tl().x + (rectangulo.br().x - rectangulo.tl().x) / 2,
-						 rectangulo.br().y + (rectangulo.tl().y - rectangulo.br().y) / 2);
-
-	if ((centro.x - lastCenter.x) < -20)
-		putText(output_img, "derecha", Point(10, 420), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
-
-	else if ((centro.x - lastCenter.x) < 20)
-		putText(output_img, "izquierda", Point(10, 420), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
-	else
-		putText(output_img, "o", Point(10, 420), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
-
-	if ((centro.y - lastCenter.y) < 20)
-		putText(output_img, "abajo", Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
-
-	else if ((centro.y - lastCenter.y) < -20)
-		putText(output_img, "arriba", Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
-	else
-		putText(output_img, "o", Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
-
-	lastCenter = centro;
-
+	//contador de defectos de convexidad adecuados para dedos
 	int cont = 0;
+	//vector que almacena los angulos de los efectos de convexidad adecuados
 	vector<double> angles;
 	//vector que almacena las puntas de los dedos
 	vector<Point> puntas;
@@ -124,66 +102,84 @@ cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 		{
 			++cont;
 			circle(output_img, f, 5, Scalar(0, 255, 0), 3);
-			//cout << depth << endl;
 			angles.push_back(angle);
 		}
 	}
 
-	// std::cout << cont << endl;
 	string cadena;
 	Point elPunto(0, 900);
+	Rect rectangulo = boundingRect(contours[index]);
 
+	//deteccion de la direccion
+	Point centro = Point(rectangulo.tl().x + (rectangulo.br().x - rectangulo.tl().x) / 2,
+						 rectangulo.br().y + (rectangulo.br().y - rectangulo.tl().y) / 2);
+
+	if ((centro.x - lastCenter.x) < -10)
+		cadena = "izquieda";
+	else if ((centro.x - lastCenter.x) > 10)
+		cadena = "derecha";
+	else
+		cadena = "o";
+	putText(output_img, cadena, Point(10, 430), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+
+	if ((centro.y - lastCenter.y) > 10)
+		cadena = "abajo";
+	else if ((centro.y - lastCenter.y) < -10)
+		cadena = "arriba";
+	else
+		cadena = "o";
+	putText(output_img, "arriba", Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+
+	lastCenter = centro;
+
+	//deteccion de gestos
 	switch (cont)
 	{
 	case 0:
-		//Diferenciar entre puño o 1 deo boundingrect
+		//Diferenciar entre puño o 1 dedo boundingrect
 		float prop1, prop2;
 		prop1 = ((float)rectangulo.height / (float)rectangulo.width);
 		prop2 = ((float)rectangulo.width / (float)rectangulo.height);
 
 		if ((prop1 < 1.3) && (prop2 < 1.3))
-			putText(output_img, "Puño", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+			cadena = "Punho";
 		else
 		{
-			putText(output_img, "Dedo", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
-
+			cadena = "Dedo";
 			//punta del dedo mas "alto"
 			for (unsigned int i = 0; i < puntas.size(); ++i)
 			{
 				if (elPunto.y > puntas[i].y)
-				{
-					elPunto.x = puntas[i].x;
-					elPunto.y = puntas[i].y;
-				}
+					elPunto = puntas[i];
 			}
 		}
 		break;
 
 	case 1:
-
 		if (angles[0] < 55)
 			cadena = "Peace";
 		else if (angles[0] < 85)
 			cadena = "Rock";
 		else
 			cadena = "Ronaldinho";
-
-		putText(output_img, cadena, Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 		break;
 
 	case 2:
-		putText(output_img, "3 dedos", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+		cadena = "3 dedos";
 		break;
 
 	case 3:
-		putText(output_img, "4 dedos", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+		cadena = "4 dedos";
 		break;
+
 	case 4:
-		putText(output_img, "Mano", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+		cadena = "Mano";
 		break;
+
 	default:
-		putText(output_img, "Franccesco", Point(0, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+		cadena = "Error";
 		break;
 	}
+	putText(output_img, cadena, Point(10, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 	return elPunto;
 }

@@ -19,7 +19,6 @@ int main(int argc, char **argv)
 	Mat frame, bgmask, out_frame;
 
 	//Abrimos la webcam
-
 	VideoCapture cap;
 
 	cap.open("/dev/video2");
@@ -30,7 +29,6 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	MyBGSubtractorColor prueba(cap);
 	int cont = 0;
 	while (frame.empty() && cont < 2000)
 	{
@@ -45,42 +43,40 @@ int main(int argc, char **argv)
 	}
 
 	// Creamos las ventanas que vamos a usar en la aplicaci�n
-
 	namedWindow("Reconocimiento");
 	namedWindow("Fondo");
-	namedWindow("lienzo");
+	namedWindow("Lienzo");
 
 	// creamos el objeto para la substracci�n de fondo
+	MyBGSubtractorColor mascara(cap);
 
 	// creamos el objeto para el reconocimiento de gestos
+	HandGesture deteccion;
+	Mat lienzo(frame.rows,frame.cols, CV_8UC3, Scalar(255, 255, 255));
 
 	// iniciamos el proceso de obtenci�n del modelo del fondo
-
-	prueba.LearnModel();
-	HandGesture deteccion;
-
-	vector<Point> Anterior(100);
-	int nPuntos = 0;
-
-	Mat lienzo(1280,720, CV_8UC3, Scalar(0, 0, 0));
+	mascara.LearnModel();
 
 	for (;;)
 	{
 		cap >> frame;
-		//flip(frame, frame, 1);
+		
+		flip(frame, frame, 1);
+
 		if (frame.empty())
 		{
-			printf("Le�do frame vac�o\n");
+			printf("Leido frame vacio\n");
 			continue;
 		}
+
 		int c = cvWaitKey(40);
 		if ((char)c == 'q')
 			break;
-		// obtenemos la m�scara del fondo con el frame actual
-		prueba.ObtainBGMask(frame, bgmask);
+		// obtenemos la mascara del fondo con el frame actual
+		mascara.ObtainBGMask(frame, bgmask);
 
 		// CODIGO 2.1
-		// limpiar la m�scara del fondo de ruido
+		// limpiar la mascara del fondo de ruido
 		medianBlur(bgmask, bgmask, 5);
 
 		int dilation_size = 3;
@@ -92,25 +88,25 @@ int main(int argc, char **argv)
 			erode(bgmask, bgmask, element);
 		}
 
-		// deteccion de las caracter�sticas de la mano
+		// deteccion de las caracteristicas de la mano
 		Point lapiz;
 		lapiz = deteccion.FeaturesDetection(bgmask, frame);
 		if (lapiz != Point(0, 0))
 		{
-			circle(lienzo, lapiz, 2, Scalar(255, 255, 255), 2);
+			circle(lienzo, lapiz, 2, Scalar(0, 0, 0), 2);
 		}
-		// mostramos el resultado de la sobstracci�n de fondo
+
+		// mostramos el resultado de la sobstracciin de fondo
+		imshow("Fondo", bgmask);
 
 		// mostramos el resultado del reconocimento de gestos
-
-		imshow("lienzo", lienzo);
 		imshow("Reconocimiento", frame);
-		imshow("Fondo", bgmask);
+		imshow("Lienzo", lienzo);
 	}
 
 	destroyWindow("Reconocimiento");
 	destroyWindow("Fondo");
-	destroyWindow("lienzo");
+	destroyWindow("Lienzo");
 	cap.release();
 	return 0;
 }

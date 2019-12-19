@@ -22,7 +22,7 @@ MyBGSubtractorColor::MyBGSubtractorColor(VideoCapture vc)
 	upper_bounds = vector<Scalar>(max_samples);
 	means = vector<Scalar>(max_samples);
 
-	h_low = 12;
+	h_low = 5;
 	h_up = 7;
 	l_low = 25;
 	l_up = 40;
@@ -138,17 +138,17 @@ void MyBGSubtractorColor::ObtainBGMask(cv::Mat frame, cv::Mat &bgmask)
 
 		// ------------------------- up --------------------------------
 
-		if (means[i][0] + h_up < 255)
+		if (means[i][0] + h_up > 255)
 			up[0] = 255;
 		else
 			up[0] = means[i][0] + h_up;
 
-		if (means[i][1] - l_up < 255)
+		if (means[i][1] + l_up > 255)
 			up[1] = 255;
 		else
 			up[1] = means[i][1] + l_up;
 
-		if (means[i][2] - s_up < 255)
+		if (means[i][2] + s_up > 255)
 			up[2] = 255;
 		else
 			up[2] = means[i][2] + s_up;
