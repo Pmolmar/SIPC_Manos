@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	// creamos el objeto para el reconocimiento de gestos
 	HandGesture deteccion;
 	Mat lienzo(frame.rows,frame.cols, CV_8UC3, Scalar(255, 255, 255));
+	Mat limpio(frame.rows,frame.cols, CV_8UC3, Scalar(255, 255, 255));
 
 	// iniciamos el proceso de obtenci�n del modelo del fondo
 	mascara.LearnModel();
@@ -95,6 +96,8 @@ int main(int argc, char **argv)
 		{
 			circle(lienzo, lapiz, 2, Scalar(0, 0, 0), 2);
 		}
+		if ((char)c == 'b')
+			limpio.copyTo(lienzo);
 
 		// mostramos el resultado de la sobstracciin de fondo
 		imshow("Fondo", bgmask);

@@ -12,7 +12,7 @@
 using namespace cv;
 using namespace std;
 
-HandGesture::HandGesture()
+HandGesture::HandGesture() : op1(-1), op2(-1)
 {
 }
 
@@ -106,31 +106,35 @@ cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 		}
 	}
 
-	string cadena;
-	Point elPunto(0, 900);
 	Rect rectangulo = boundingRect(contours[index]);
-
+	string direccion;
 	//deteccion de la direccion
 	Point centro = Point(rectangulo.tl().x + (rectangulo.br().x - rectangulo.tl().x) / 2,
 						 rectangulo.br().y + (rectangulo.br().y - rectangulo.tl().y) / 2);
 
+	//izquieda derecha
 	if ((centro.x - lastCenter.x) < -10)
-		cadena = "izquieda";
+		direccion = "derecha";
 	else if ((centro.x - lastCenter.x) > 10)
-		cadena = "derecha";
+		direccion = "izquierda";
 	else
-		cadena = "o";
-	putText(output_img, cadena, Point(10, 430), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+		direccion = "o";
+	putText(output_img, direccion, Point(10, 430), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 
-	if ((centro.y - lastCenter.y) > 10)
-		cadena = "abajo";
-	else if ((centro.y - lastCenter.y) < -10)
-		cadena = "arriba";
+	//arriba abajo
+	if ((centro.y - lastCenter.y) < -5)
+		direccion = "abajo";
+	else if ((centro.y - lastCenter.y) > 5)
+		direccion = "arriba";
 	else
-		cadena = "o";
-	putText(output_img, "arriba", Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+		direccion = "o";
+	putText(output_img, direccion, Point(10, 400), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
 
 	lastCenter = centro;
+
+	int dedo;
+	string cadena;
+	Point elPunto(0, 900);
 
 	//deteccion de gestos
 	switch (cont)
@@ -142,7 +146,10 @@ cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 		prop2 = ((float)rectangulo.width / (float)rectangulo.height);
 
 		if ((prop1 < 1.3) && (prop2 < 1.3))
+		{
 			cadena = "Punho";
+			dedo = 0;
+		}
 		else
 		{
 			cadena = "Dedo";
@@ -152,6 +159,7 @@ cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 				if (elPunto.y > puntas[i].y)
 					elPunto = puntas[i];
 			}
+			dedo = 1;
 		}
 		break;
 
@@ -162,24 +170,55 @@ cv::Point HandGesture::FeaturesDetection(Mat mask, Mat output_img)
 			cadena = "Rock";
 		else
 			cadena = "Ronaldinho";
+		dedo = 2;
 		break;
 
 	case 2:
 		cadena = "3 dedos";
+		dedo = 3;
 		break;
 
 	case 3:
 		cadena = "4 dedos";
+		dedo = 4;
 		break;
 
 	case 4:
 		cadena = "Mano";
+		dedo = 5;
 		break;
 
 	default:
 		cadena = "Error";
+		dedo = 0;
 		break;
 	}
 	putText(output_img, cadena, Point(10, 50), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+
+	//operaciones con la mano
+	int key = cvWaitKey(10);
+	string operacion;
+	if ((char)key == '1')
+		op1 = dedo;
+
+	if ((char)key== '2')
+		op2 = dedo;
+
+	if ((char)key == 's')
+	{
+		int x = op1 + op2;
+		operacion = "La suma es : ";
+		operacion += to_string(x);
+		putText(output_img, operacion, Point(10, 100), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+	}
+
+	if ((char)key == 'r')
+	{
+		int x = op1 - op2;
+		operacion = "La resta es : ";
+		operacion += to_string(x);
+		putText(output_img, operacion, Point(10, 100), 1, FONT_HERSHEY_COMPLEX, Scalar(0, 255, 5));
+	}
+
 	return elPunto;
 }

@@ -19,4 +19,6 @@ public:
 private:
 	double getAngle(cv::Point s, cv::Point e, cv::Point f);
 	cv::Point lastCenter;
+
+	int op1,op2;
 };
